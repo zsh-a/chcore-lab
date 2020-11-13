@@ -90,8 +90,7 @@ static struct page *split_page(struct phys_mem_pool *pool, u64 order,
 			       struct page *page)
 {
 	// <lab2>
-	struct page *split_page = NULL;
-	return split_page;
+	return NULL;
 	// </lab2>
 }
 
@@ -106,8 +105,26 @@ static struct page *split_page(struct phys_mem_pool *pool, u64 order,
 struct page *buddy_get_pages(struct phys_mem_pool *pool, u64 order)
 {
 	// <lab2>
+	if(order >= BUDDY_MAX_ORDER) return NULL;
 	struct page *page = NULL;
-
+	struct free_list* order_list = &pool->free_lists[order];
+	if(order_list->nr_free == 0){
+		struct page* p = buddy_get_pages(pool,order+1);
+		if(!p) return NULL;
+		p->order--;
+		struct page* buddy = get_buddy_chunk(pool,p);
+		buddy->order = p->order;
+		buddy->allocated = 0;
+		list_append(&buddy->node,&order_list->free_list);
+		order_list->nr_free++;
+		p->allocated = 1;
+		return p;
+	}
+	struct list_head* list_node = order_list->free_list.next;
+	page = list_entry(list_node,struct page,node);
+	page->allocated = 1;
+	order_list->nr_free--;
+	list_del(list_node);
 	return page;
 	// </lab2>
 }
@@ -124,9 +141,16 @@ struct page *buddy_get_pages(struct phys_mem_pool *pool, u64 order)
 static struct page *merge_page(struct phys_mem_pool *pool, struct page *page)
 {
 	// <lab2>
-
-	struct page *merge_page = NULL;
-	return merge_page;
+	int order = page->order;
+	if(order>= BUDDY_MAX_ORDER - 1) return page;
+	struct page* buddy = get_buddy_chunk(pool,page);
+	// check the order of buddy whither equale page's order
+	if(!buddy ||  buddy->order != order || buddy->allocated == 1) return page;
+	list_del(&buddy->node);
+	pool->free_lists[order].nr_free--;
+	if((u64)buddy < (u64)page) page = buddy;
+	page->order = order + 1;
+	return merge_page(pool,page);
 	// </lab2>
 }
 
@@ -140,7 +164,11 @@ static struct page *merge_page(struct phys_mem_pool *pool, struct page *page)
 void buddy_free_pages(struct phys_mem_pool *pool, struct page *page)
 {
 	// <lab2>
-
+	page->allocated = 0;
+	page = merge_page(pool,page);
+	struct free_list* order_list = &pool->free_lists[page->order];
+	order_list->nr_free++;
+	list_append(&page->node,&order_list->free_list);
 	// </lab2>
 }
 
