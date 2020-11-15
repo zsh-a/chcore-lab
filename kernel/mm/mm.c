@@ -16,7 +16,7 @@
 
 #include "buddy.h"
 #include "slab.h"
-
+#include "page_table.h"
 extern unsigned long *img_end;
 
 #define PHYSICAL_MEM_START (24*1024*1024)	//24M
@@ -40,7 +40,8 @@ unsigned long get_ttbr1(void)
 	__asm__("mrs %0,ttbr1_el1":"=r"(pgd));
 	return pgd;
 }
-
+extern  int get_next_ptp(ptp_t * cur_ptp, u32 level, vaddr_t va,
+			ptp_t ** next_ptp, pte_t ** pte, bool alloc);
 /*
  * map_kernel_space: map the kernel virtual address
  * [va:va+size] to physical addres [pa:pa+size].
@@ -51,6 +52,25 @@ unsigned long get_ttbr1(void)
 void map_kernel_space(vaddr_t va, paddr_t pa, size_t len)
 {
 	// <lab2>
+	unsigned long pgd = get_ttbr1();
+	size_t BLOCK = 1UL << 21;
+	int page_num = len / BLOCK;
+	ptp_t* l0_ptp = pgd;
+	ptp_t* l1_ptp,*l2_ptp,*l3_ptp;
+	pte_t* pte;
+	for(int i = 0;i < page_num;i++){
+		get_next_ptp(l0_ptp,0,va,&l1_ptp,&pte,true);
+		get_next_ptp(l1_ptp,1,va,&l2_ptp,&pte,true);
+		get_next_ptp(l2_ptp,2,va,&l3_ptp,&pte,true);
+		pte->l2_block.pfn = pa >> 21;
+		pte->l2_block.UXN = 1;
+		pte->l2_block.AF = 1;
+		pte->l2_block.SH = 3;
+		pte->l2_block.is_valid = 1;
+		pte->l2_block.is_table = 0;
+		va += BLOCK;
+		pa += BLOCK;
+	}
 
 	// </lab2>
 }
