@@ -26,6 +26,7 @@ void exception_init_per_cpu(void)
 	 * Setup the exception vector with the asm function written in exception.S
 	 */
 	disable_irq();
+	set_exception_vector();
 }
 
 void exception_init(void)
@@ -50,6 +51,8 @@ void handle_entry_c(int type, u64 esr, u64 address)
 		 */
 	default:
 		kdebug("Unsupported Exception ESR %lx\n", esr);
+		kinfo(UNKNOWN);
+		sys_exit(-ESUPPORT);
 		break;
 	}
 }
