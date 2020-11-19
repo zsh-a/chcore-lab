@@ -29,6 +29,7 @@ void sys_putc(char ch)
 	 * Lab3: Your code here
 	 * Send ch to the screen in anyway as your like
 	 */
+	uart_send(ch);
 }
 
 /*
@@ -39,4 +40,6 @@ void sys_putc(char ch)
 const void *syscall_table[NR_SYSCALL] = {
 	[0 ... NR_SYSCALL - 1] = sys_debug,
 	/* lab3 syscalls finished */
+	[SYS_putc] = sys_putc,
+	[SYS_exit] = sys_exit,
 };

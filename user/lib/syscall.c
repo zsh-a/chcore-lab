@@ -13,6 +13,28 @@ u64 syscall(u64 sys_no, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4,
 	 * And finally use svc to execute the system call. After syscall returned, don't forget
 	 * to move return value from x0 to the ret variable of this function
 	 */
+	asm volatile("mov x0, %0" ::"r"(arg0):"x0");
+	asm volatile("mov x1, %0" ::"r"(arg1):"x1");
+	asm volatile("mov x2, %0" ::"r"(arg2):"x2");
+	asm volatile("mov x3, %0" ::"r"(arg3):"x3");
+	asm volatile("mov x4, %0" ::"r"(arg4):"x4");
+	asm volatile("mov x5, %0" ::"r"(arg5):"x5");
+	asm volatile("mov x6, %0" ::"r"(arg6):"x6");
+	asm volatile("mov x7, %0" ::"r"(arg7):"x7");
+	asm volatile("mov x8, %0" ::"r"(sys_no):"x8");
+	asm volatile("svc #0");
+	asm volatile("mov %0, x0" :"=r"(ret)::);
+
+	// asm volatile("mov x1, %[v]" :: [v]"r"(arg1));
+	// asm volatile("mov x2, %[v]" :: [v]"r"(arg2));		
+	// asm volatile("mov x3, %[v]" :: [v]"r"(arg3));
+	// asm volatile("mov x4, %[v]" :: [v]"r"(arg4));
+	// asm volatile("mov x5, %[v]" :: [v]"r"(arg5));
+	// asm volatile("mov x6, %[v]" :: [v]"r"(arg6));
+	// asm volatile("mov x7, %[v]" :: [v]"r"(arg7));
+	// asm volatile("mov x8, %[v]" :: [v]"r"(sys_no));
+	// asm volatile("svc #0");
+	// asm volatile("mov %[v], x0" :[v]"=r"(ret));
 	return ret;
 }
 
@@ -22,25 +44,27 @@ u64 syscall(u64 sys_no, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4,
  */
 void usys_putc(char ch)
 {
+	syscall(SYS_putc, ch, 0, 0, 0, 0, 0, 0, 0, 0);
 }
 
 void usys_exit(int ret)
 {
+	syscall(SYS_exit,ret,0,0,0,0,0,0,0,0);
 }
 
 int usys_create_pmo(u64 size, u64 type)
 {
-	return 0;
+	return syscall(SYS_create_pmo,size,type,0,0,0,0,0,0,0);
 }
 
 int usys_map_pmo(u64 process_cap, u64 pmo_cap, u64 addr, u64 rights)
 {
-	return 0;
+	return syscall(SYS_map_pmo,addr,process_cap,pmo_cap,addr,rights,0,0,0,0);
 }
 
 u64 usys_handle_brk(u64 addr)
 {
-	return 0;
+	return syscall(SYS_handle_brk,addr,0,0,0,0,0,0,0,0);
 }
 
 /* Here finishes all syscalls need by lab3 */
