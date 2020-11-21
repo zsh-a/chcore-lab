@@ -25,16 +25,6 @@ u64 syscall(u64 sys_no, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4,
 	asm volatile("svc #0");
 	asm volatile("mov %0, x0" :"=r"(ret)::);
 
-	// asm volatile("mov x1, %[v]" :: [v]"r"(arg1));
-	// asm volatile("mov x2, %[v]" :: [v]"r"(arg2));		
-	// asm volatile("mov x3, %[v]" :: [v]"r"(arg3));
-	// asm volatile("mov x4, %[v]" :: [v]"r"(arg4));
-	// asm volatile("mov x5, %[v]" :: [v]"r"(arg5));
-	// asm volatile("mov x6, %[v]" :: [v]"r"(arg6));
-	// asm volatile("mov x7, %[v]" :: [v]"r"(arg7));
-	// asm volatile("mov x8, %[v]" :: [v]"r"(sys_no));
-	// asm volatile("svc #0");
-	// asm volatile("mov %[v], x0" :[v]"=r"(ret));
 	return ret;
 }
 
@@ -59,7 +49,7 @@ int usys_create_pmo(u64 size, u64 type)
 
 int usys_map_pmo(u64 process_cap, u64 pmo_cap, u64 addr, u64 rights)
 {
-	return syscall(SYS_map_pmo,addr,process_cap,pmo_cap,addr,rights,0,0,0,0);
+	return syscall(SYS_map_pmo,process_cap,pmo_cap,addr,rights,0,0,0,0,0);
 }
 
 u64 usys_handle_brk(u64 addr)

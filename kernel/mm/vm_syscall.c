@@ -347,6 +347,20 @@ u64 sys_handle_brk(u64 addr)
 	 * top.
 	 *
 	 */
+ 	vmr = vmspace->heap_vmr;
+	if(addr == 0){
+		pmo = obj_alloc(TYPE_PMO,sizeof(*pmo));
+		pmo_init(pmo,PMO_ANONYM,0,0);
+		vmr = init_heap_vmr(vmspace,vmspace->user_current_heap,pmo);
+		if(!vmr) return -EINVAL;
+		vmspace->heap_vmr = vmr;
+		retval = vmr->start + vmr->size;
+	}else if(addr > vmr->start + vmr->size){
+		vmr->size = vmr->pmo->size = addr - vmr->start;
+		retval = addr;
+	}else if(addr < vmr->start + vmr->size){
+		return -EINVAL;
+	}
 
 	/*
 	 * return origin heap addr on failure;

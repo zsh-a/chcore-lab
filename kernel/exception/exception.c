@@ -49,6 +49,12 @@ void handle_entry_c(int type, u64 esr, u64 address)
 		 * Handle exceptions as required in the lab document. Checking exception codes in
 		 * esr.h may help.
 		 */
+		case ESR_EL1_EC_DABT_LEL:
+			do_page_fault(esr, address);
+			break;
+		case ESR_EL1_EC_DABT_CEL:
+			do_page_fault(esr, address);
+			break;
 	default:
 		kdebug("Unsupported Exception ESR %lx\n", esr);
 		kinfo(UNKNOWN);
